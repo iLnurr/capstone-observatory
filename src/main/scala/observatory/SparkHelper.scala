@@ -47,7 +47,7 @@ object SparkHelper {
   def stationsDF(stationsFile: String): DataFrame = {
     spark.read.schema(Station.schema).csv(fsPath(stationsFile))
   }
-  def stationsDS(stationsFile: String) = {
+  def stationsDS(stationsFile: String): Dataset[Station] = {
     spark.read.schema(Station.schema).csv(fsPath(stationsFile)).as[Station]
   }
 
@@ -63,7 +63,9 @@ object SparkHelper {
       )
     )
   }
-  case class TempContainer(stn: Option[String], wban: Option[String], month: Option[String], day: Option[String], temperatureFh: Option[String])
+  case class TempContainer(stn: Option[String], wban: Option[String], month: Option[String], day: Option[String], temperatureFh: Option[String]) {
+    def toCelsius() = (temperatureFh.get.toDouble - 32) / 1.8000
+  }
   def tempDF(tempFile: String): DataFrame = {
     spark.read.schema(TempContainer.schema).csv(fsPath(tempFile))
   }
