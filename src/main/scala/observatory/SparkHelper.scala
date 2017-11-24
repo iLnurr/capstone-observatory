@@ -38,12 +38,12 @@ object SparkHelper {
       Seq(
         StructField("stn",StringType,nullable = true),
         StructField("wban",StringType,nullable = true),
-        StructField("lat",StringType,nullable = true),
-        StructField("lon",StringType,nullable = true)
+        StructField("lat",DoubleType,nullable = true),
+        StructField("lon",DoubleType,nullable = true)
       )
     )
   }
-  case class Station(stn: Option[String], wban: Option[String], lat: Option[String], lon: Option[String])
+  case class Station(stn: Option[String], wban: Option[String], lat: Option[Double], lon: Option[Double])
   def stationsDF(stationsFile: String): DataFrame = {
     spark.read.schema(Station.schema).csv(fsPath(stationsFile))
   }
@@ -57,14 +57,14 @@ object SparkHelper {
       Seq(
         StructField("stn",StringType,true),
         StructField("wban",StringType,true),
-        StructField("month",StringType,true),
-        StructField("day",StringType,true),
-        StructField("temperatureFh",StringType,true)
+        StructField("month",IntegerType,true),
+        StructField("day",IntegerType,true),
+        StructField("temperatureFh",DoubleType,true)
       )
     )
   }
-  case class TempContainer(stn: Option[String], wban: Option[String], month: Option[String], day: Option[String], temperatureFh: Option[String]) {
-    def toCelsius() = (temperatureFh.get.toDouble - 32) / 1.8000
+  case class TempContainer(stn: Option[String], wban: Option[String], month: Option[Int], day: Option[Int], temperatureFh: Option[Double]) {
+    def toCelsius() = (temperatureFh.get - 32) / 1.8
   }
   def tempDF(tempFile: String): DataFrame = {
     spark.read.schema(TempContainer.schema).csv(fsPath(tempFile))
