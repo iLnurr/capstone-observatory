@@ -36,41 +36,52 @@ object SparkHelper {
   object Station {
     def schema = StructType(
       Seq(
-        StructField("stn",StringType,nullable = false),
-        StructField("wban",StringType,nullable = true),
+        StructField("id",StringType,nullable = false),
         StructField("lat",DoubleType,nullable = false),
         StructField("lon",DoubleType,nullable = false)
       )
     )
   }
-  case class Station(stn: Option[String], wban: Option[String], lat: Option[Double], lon: Option[Double])
+  case class Station(id: String, lat: Double, lon: Double)
   def stationsDF(stationsFile: String): DataFrame = {
     spark.read.schema(Station.schema).csv(fsPath(stationsFile))
   }
   def stationsDS(stationsFile: String): Dataset[Station] = {
-    spark.read.schema(Station.schema).csv(fsPath(stationsFile)).as[Station]
+    spark.read.csv(fsPath(stationsFile))
+      .select(
+        concat_ws("~", coalesce('_c0, lit("")), '_c1).alias("id"),
+        '_c2.alias("lat").cast(DoubleType),
+        '_c3.alias("lon").cast(DoubleType)
+      )
+      .where('_c2.isNotNull && '_c3.isNotNull && '_c2 =!= 0.0 && '_c3 =!= 0.0)
+      .as[Station]
   }
 
   //TEMPERATURE
   object TempContainer {
     def schema = StructType(
       Seq(
-        StructField("stn",StringType,nullable = false),
-        StructField("wban",StringType,nullable = true),
-        StructField("month",IntegerType,nullable = false),
+        StructField("id",StringType,nullable = false),
         StructField("day",IntegerType,nullable = false),
-        StructField("temperatureFh",DoubleType,nullable = false)
+        StructField("month",IntegerType,nullable = false),
+        StructField("temperature",DoubleType,nullable = false)
       )
     )
   }
-  case class TempContainer(stn: Option[String], wban: Option[String], month: Option[Int], day: Option[Int], temperatureFh: Option[Double]) {
-    def toCelsius() = (temperatureFh.get - 32) / 1.8
-  }
+  case class TempContainer(id: String, day: Int, month: Int, temperature: Double)
   def tempDF(tempFile: String): DataFrame = {
     spark.read.schema(TempContainer.schema).csv(fsPath(tempFile))
   }
   def tempDS(tempFile: String): Dataset[TempContainer] = {
-    spark.read.schema(TempContainer.schema).csv(fsPath(tempFile)).as[TempContainer]
+    spark.read.csv(fsPath(tempFile))
+      .select(
+        concat_ws("~", coalesce('_c0, lit("")), '_c1).alias("id"),
+        '_c3.alias("day").cast(IntegerType),
+        '_c2.alias("month").cast(IntegerType),
+        (('_c4 - 32) / 9 * 5).alias("temperature").cast(DoubleType)
+      )
+      .where('_c4.between(-200, 200))
+      .as[TempContainer]
   }
 
 }

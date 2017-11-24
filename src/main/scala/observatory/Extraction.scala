@@ -19,16 +19,16 @@ object Extraction {
     * @return A sequence containing triplets (date, location, temperature)
     */
   def locateTemperatures(year: Year, stationsFile: String, temperaturesFile: String): Iterable[(LocalDate, Location, Temperature)] = {
-    val stations = stationsDS(stationsFile).filter((s: Station) => s.stn.isDefined && s.lat.isDefined && s.lon.isDefined)
-    val temps = tempDS(temperaturesFile).filter((tc: TempContainer) => tc.stn.isDefined && tc.day.isDefined && tc.month.isDefined && tc.temperatureFh.isDefined)
+    val stations = stationsDS(stationsFile)
+    val temps = tempDS(temperaturesFile)
 
-    temps.joinWith(stations, temps.col("stn") === stations.col("stn"), "inner").map { t =>
+    temps.joinWith(stations, temps.col("id") === stations.col("id"), "inner").map { t =>
       val tempContainer = t._1
       val station = t._2
       (
-        new java.sql.Date(year - 1900, tempContainer.month.get, tempContainer.day.get),
-        Location(station.lat.get, station.lon.get),
-        tempContainer.toCelsius()
+        new java.sql.Date(year - 1900, tempContainer.month, tempContainer.day),
+        Location(station.lat, station.lon),
+        tempContainer.temperature
       )
     }.collect().map(t => (t._1.toLocalDate, t._2, t._3))
   }

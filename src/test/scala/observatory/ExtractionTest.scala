@@ -41,7 +41,7 @@ trait ExtractionTest extends FunSuite {
     println()
     val stationsCount = ds.count()
     println(stationsCount)
-    assert(stationsCount == 29444, "Stations count in file `/stations.csv` should be 29444")
+    assert(stationsCount == 27708, "Stations count in file `/stations.csv` should be 29444")
   }
 
   test("correct read temp DF from csv") {
