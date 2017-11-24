@@ -26,8 +26,8 @@ object Extraction {
       val tempContainer = t._1
       val station = t._2
       (
-        new java.sql.Date(year - 1900, tempContainer.month.get.toInt, tempContainer.day.get.toInt),
-        Location(station.lat.get.toDouble, station.lon.get.toDouble),
+        new java.sql.Date(year - 1900, tempContainer.month.get, tempContainer.day.get),
+        Location(station.lat.get, station.lon.get),
         tempContainer.toCelsius()
       )
     }.collect().map(t => (t._1.toLocalDate, t._2, t._3))
@@ -38,16 +38,14 @@ object Extraction {
     * @return A sequence containing, for each location, the average temperature over the year.
     */
   def locationYearlyAverageRecords(records: Iterable[(LocalDate, Location, Temperature)]): Iterable[(Location, Temperature)] = {
-    val rdd = spark.sparkContext.parallelize(records.toSeq).map { t =>
-      t._2 -> t._3
-    }.persist()
-    val result = rdd
-      .mapValues(t => (t, 1))
-      .reduceByKey((v1,v2) => (v1._1 + v2._1, v1._2 + v2._2))
-      .mapValues{
-        case (temp, numb) => temp / numb
-      }
-    result.collect()
+    records
+      .par
+      .groupBy(_._2)
+      .mapValues(
+        l => l.foldLeft(0.0)(
+          (t,r) => t + r._3) / l.size
+      )
+      .seq
   }
 
 }
