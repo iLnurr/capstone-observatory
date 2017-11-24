@@ -7,6 +7,7 @@ import org.scalatest.junit.JUnitRunner
 
 trait ExtractionTest extends FunSuite {
   import SparkHelper._
+  import Extraction._
 
   private val stationsPath = "/stations.csv"
   private val tempPath = "/1975.csv"
@@ -61,5 +62,19 @@ trait ExtractionTest extends FunSuite {
     val tempCount = ds.count()
     println(tempCount)
     assert(tempCount == 2190974, "Row count in file `/1975.csv` should be 2190974")
+  }
+
+  test("locate temperatures test") {
+    val stationsFile = stationsPath
+    val temperaturesFile = tempPath
+    val year = 1975
+
+    val result = locateTemperatures(year, stationsFile, temperaturesFile)
+
+    val size = result.size
+    println(size)
+    println(result.head)
+    println(result.last)
+
   }
 }
