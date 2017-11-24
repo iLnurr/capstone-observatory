@@ -1,6 +1,7 @@
 package observatory
 
 import java.nio.file.Paths
+import java.time.LocalDate
 
 import org.apache.log4j.{Level, Logger}
 import org.apache.spark.rdd.RDD
@@ -82,6 +83,10 @@ object SparkHelper {
       )
       .where('_c4.between(-200, 200))
       .as[TempContainer]
+  }
+
+  case class StationDate(year: Int, month: Int, day: Int){
+    def toLocalDate = LocalDate.of(year, month, day)
   }
 
 }
