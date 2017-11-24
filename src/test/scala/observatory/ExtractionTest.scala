@@ -75,6 +75,15 @@ trait ExtractionTest extends FunSuite {
     println(size)
     println(result.head)
     println(result.last)
+  }
 
+  test("locationYearlyAverageRecords") {
+    val records = locateTemperatures(1975, stationsPath, tempPath)
+
+    val result = locationYearlyAverageRecords(records)
+
+    println(result.head)
+    println(result.last)
+    println(result.size)
   }
 }
