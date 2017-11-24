@@ -36,10 +36,10 @@ object SparkHelper {
   object Station {
     def schema = StructType(
       Seq(
-        StructField("stn",StringType,nullable = true),
+        StructField("stn",StringType,nullable = false),
         StructField("wban",StringType,nullable = true),
-        StructField("lat",DoubleType,nullable = true),
-        StructField("lon",DoubleType,nullable = true)
+        StructField("lat",DoubleType,nullable = false),
+        StructField("lon",DoubleType,nullable = false)
       )
     )
   }
@@ -55,11 +55,11 @@ object SparkHelper {
   object TempContainer {
     def schema = StructType(
       Seq(
-        StructField("stn",StringType,true),
-        StructField("wban",StringType,true),
-        StructField("month",IntegerType,true),
-        StructField("day",IntegerType,true),
-        StructField("temperatureFh",DoubleType,true)
+        StructField("stn",StringType,nullable = false),
+        StructField("wban",StringType,nullable = true),
+        StructField("month",IntegerType,nullable = false),
+        StructField("day",IntegerType,nullable = false),
+        StructField("temperatureFh",DoubleType,nullable = false)
       )
     )
   }
