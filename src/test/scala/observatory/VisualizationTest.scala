@@ -1,6 +1,7 @@
 package observatory
 
 
+import com.sksamuel.scrimage.Image
 import observatory.Extraction._
 import org.scalatest.FunSuite
 import org.scalatest.prop.Checkers
