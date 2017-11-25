@@ -88,4 +88,17 @@ trait VisualizationTest extends FunSuite with Checkers with TimeCheck {
 
   }
 
+  test("interpolate - tl") {
+    val shuffled = points
+    val sorted = shuffled.toSeq.sortBy(_._1)
+    println(sorted)
+
+    assert(visCheck.interpolateColor(points,  60) == Color(255,255,255))
+    assert(visCheck.interpolateColor(points,   0) == Color(  0,255,255))
+    assert(visCheck.interpolateColor(points, -60) == Color(  0,  0,  0))
+
+    println(visCheck.interpolateColor(points, 6))
+
+  }
+
 }
