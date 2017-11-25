@@ -2,6 +2,7 @@ package observatory
 
 import com.sksamuel.scrimage.{Image, Pixel}
 
+import scala.collection.Iterable
 import scala.math._
 
 /**
@@ -104,8 +105,45 @@ object Visualization {
     * @param colors Color scale
     * @return A 360×180 image where each pixel shows the predicted temperature at its location
     */
-  def visualize(temperatures: Iterable[(Location, Temperature)], colors: Iterable[(Temperature, Color)]): Image = {
-    ???
+  def visualize(temperatures: Iterable[(Location, Double)], colors: Iterable[(Double, Color)]): Image = {
+    val imageWidth = 360
+    val imageHeight = 180
+
+    val locationMap = posToLocation(imageWidth, imageHeight) _
+
+    val pixels = (0 until imageHeight * imageWidth).par.map {
+      pos =>
+        pos -> interpolateColor(
+          colors,
+          predictTemperature(
+            temperatures,
+            locationMap(pos)
+          )
+        ).toPixel()
+    }
+      .seq
+      .sortBy(_._1)
+      .map(_._2)
+
+    Image(imageWidth, imageHeight, pixels.toArray)
+  }
+
+  /**
+    * (Partial) function that returns a Location based on a position in an image  (starting from top left (90.0, -180.0 | 0, 0) moving right -> down), taking in account the image dimensions
+    *
+    * @param imageWidth  pixels
+    * @param imageHeight pixels
+    * @param pos         withing image as y * imageWidth + x
+    * @return Location (lat long)
+    */
+  def posToLocation(imageWidth: Int, imageHeight: Int)(pos: Int): Location = {
+    val widthFactor = 180 * 2 / imageWidth.toDouble
+    val heightFactor = 90 * 2 / imageHeight.toDouble
+
+    val x: Int = pos % imageWidth
+    val y: Int = pos / imageWidth
+
+    Location(90 - (y * heightFactor), (x * widthFactor) - 180)
   }
 
 }
