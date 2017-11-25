@@ -77,7 +77,7 @@ object Visualization {
         case _ if col0 == col1 =>
           col0
         case _ =>
-          ((col0 * (1 - xPart)) + (col1 * xPart)).toInt
+          round((col0 * (1 - xPart)) + (col1 * xPart)).toInt
       }
       Color(eval(y0.red, y1.red), eval(y0.green, y1.green), eval(y0.blue, y1.blue))
     }
