@@ -15,9 +15,24 @@ object Visualization {
     * @return The predicted temperature at `location`
     */
   def predictTemperature(temperatures: Iterable[(Location, Temperature)], location: Location): Temperature = {
-    ???
+    val p = 2
+    def weight(other: Location): Temperature = {
+      1 / pow(distance(location, other), p)
+    }
+    var weights = 0.0
+    val u = temperatures.map { t =>
+      val other = t._1
+      val temp = t._2
+      if (other == location) {
+        0.0
+      } else {
+        val w = weight(other)
+        weights += w
+        w * temp
+      }
+    }.sum
+    u / weights
   }
-
 
   // fi == lat and
   // theta = lon and

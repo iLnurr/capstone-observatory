@@ -37,7 +37,26 @@ trait VisualizationTest extends FunSuite with Checkers with TimeCheck {
     )
   }
 
+  val p = 2
+  def weight(other: Location): Temperature = {
+    1 / pow(distance(location, other), p)
+  }
+
+  test("inverse distance weight") {
+    println(weight(location))
+    println(weight(locationAntiPod))
+    println(weight(location2))
+    println(weight(location.copy(lat = location.lat - 1)))
+    println(weight(location.copy(lat = location.lat + 1)))
+    println(weight(location.copy(lon = location.lon - 1)))
+  }
+
   test("predict temperature should work correctly and fast") {
+    val resords = locateTemperatures(year, stationsPath, tempPath)
+    val temperatures = locationYearlyAverageRecords(records)
+
+    val predicted = withTimeChecking(predictTemperature(temperatures, location))
+    println(predicted)
   }
 
 }
