@@ -10,7 +10,7 @@ import org.apache.spark.sql.types._
 
 object SparkHelper {
 
-  val log = Logger.getLogger("org.apache.spark").setLevel(Level.WARN)
+  Logger.getLogger("org.apache.spark").setLevel(Level.WARN)
   import org.apache.spark.sql.SparkSession
   import org.apache.spark.sql.functions._
 
