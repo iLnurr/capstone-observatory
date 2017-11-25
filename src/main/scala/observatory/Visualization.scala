@@ -11,98 +11,8 @@ import scala.math._
 object Visualization {
 
   /**
-    * @param temperatures Known temperatures: pairs containing a location and the temperature at this location
-    * @param location Location where to predict the temperature
-    * @return The predicted temperature at `location`
-    */
-  def predictTemperature(temperatures: Iterable[(Location, Temperature)], location: Location): Temperature = {
-    // https://en.wikipedia.org/wiki/Inverse_distance_weighting
-    val p = 2
-    def weight(other: Location): Temperature = {
-      1 / pow(distance(location, other), p)
-    }
-    var weights = 0.0
-    val u = temperatures.map { t =>
-      val other = t._1
-      val temp = t._2
-      if (other == location) {
-        0.0
-      } else {
-        val w = weight(other)
-        weights += w
-        w * temp
-      }
-    }.sum
-    u / weights
-  }
-
-  // fi == lat and
-  // theta = lon and
-  // central angle = cAngle
-  // https://en.wikipedia.org/wiki/Great-circle_distance
-  def distance(loc1: Location, loc2: Location) = {
-    val earthRadius = 6371 // km
-    val cAngle = if (loc1 == loc2) {
-      0
-    } else if (getAntipode(loc1) == loc2) {
-      Pi
-    } else {
-      acos((sin(toRadians(loc1.lat)) * sin(toRadians(loc2.lat))) + (cos(toRadians(loc1.lat)) * cos(toRadians(loc2.lat)) * cos(toRadians(loc1.lon - loc2.lon))))
-    }
-    cAngle * earthRadius
-  }
-
-  // https://ru.wikipedia.org/wiki/Географические_координаты
-  def getAntipode(location: Location): Location = {
-    location.copy(lat = -location.lat, lon = - (180 - abs(location.lon)))
-  }
-
-  /**
-    * @param points Pairs containing a value and its associated color
-    * @param value The value to interpolate
-    * @return The color that corresponds to `value`, according to the color scale defined by `points`
-    */
-  def interpolateColor(points: Iterable[(Temperature, Color)], value: Temperature): Color = {
-    // y - new Color
-    // x - value
-    // y0 - color before (bottom)
-    // x0 - temp before
-    // y1 - color after
-    // x1 - temp after
-    // y = y0 * (1 - (x - x0) / (x1 - x0)) + y1 * ((x - x0) / (x1 - x0))
-    // https://en.wikipedia.org/wiki/Linear_interpolation
-
-    def interpolate(y0: Color, x0: Temperature, y1: Color, x1: Temperature, x: Temperature) = {
-      val xPart = (x - x0) / (x1 - x0)
-      def eval(col0: Int, col1: Int): Int = col0 match {
-        case _ if col0 == col1 =>
-          col0
-        case _ =>
-          round((col0 * (1 - xPart)) + (col1 * xPart)).toInt
-      }
-      Color(eval(y0.red, y1.red), eval(y0.green, y1.green), eval(y0.blue, y1.blue))
-    }
-
-    val sorted = points.toList.sortBy(_._1)
-
-    @scala.annotation.tailrec
-    def find(list: List[(Temperature, Color)], before: (Temperature, Color)): ((Temperature, Color), (Temperature, Color)) = list match {
-      case after :: Nil =>
-        if (before._1 <= value && value <= after._1) before -> after
-        else throw new IllegalArgumentException("not founded")
-      case after :: xs =>
-        if (before._1 <= value && value <= after._1) before -> after
-        else find(xs, after)
-    }
-
-    val ((x0, y0),(x1, y1)) = find(sorted, sorted.head)
-
-    interpolate(y0, x0, y1, x1, value)
-  }
-
-  /**
     * @param temperatures Known temperatures
-    * @param colors Color scale
+    * @param colors       Color scale
     * @return A 360×180 image where each pixel shows the predicted temperature at its location
     */
   def visualize(temperatures: Iterable[(Location, Double)], colors: Iterable[(Double, Color)]): Image = {
@@ -129,6 +39,102 @@ object Visualization {
   }
 
   /**
+    * @param temperatures Known temperatures: pairs containing a location and the temperature at this location
+    * @param location     Location where to predict the temperature
+    * @return The predicted temperature at `location`
+    */
+  def predictTemperature(temperatures: Iterable[(Location, Double)], location: Location): Double = {
+    val predictions: Iterable[(Double, Double)] = distanceTemperatureCombi(temperatures, location)
+
+    predictions.find(_._1 == 0.0) match {
+      case Some((_, temp)) => temp
+      case _ => inverseDistanceWeighted(predictions, power = 3)
+    }
+  }
+
+  def distanceTemperatureCombi(temperatures: Iterable[(Location, Double)], location: Location): Iterable[(Double, Double)] = {
+    temperatures.map {
+      case (otherLocation, temperature) => (location.point haversineEarthDistance otherLocation.point, temperature)
+    }
+  }
+
+  /**
+    * https://en.wikipedia.org/wiki/Inverse_distance_weighting
+    *
+    * @param distanceTemperatureCombinations
+    * @param power
+    * @return
+    */
+  def inverseDistanceWeighted(distanceTemperatureCombinations: Iterable[(Double, Double)], power: Int): Double = {
+    val (weightedSum, inverseWeightedSum) = distanceTemperatureCombinations
+      .aggregate((0.0, 0.0))(
+        {
+          case ((ws, iws), (distance, temp)) => {
+            val w = 1 / pow(distance, power)
+            (w * temp + ws, w + iws)
+          }
+        }, {
+          case ((wsA, iwsA), (wsB, iwsB)) => (wsA + wsB, iwsA + iwsB)
+        }
+      )
+
+    weightedSum / inverseWeightedSum
+  }
+
+  /**
+    * @param points Pairs containing a value and its associated color
+    * @param value  The value to interpolate
+    * @return The color that corresponds to `value`, according to the color scale defined by `points`
+    */
+  def interpolateColor(points: Iterable[(Double, Color)], value: Double): Color = {
+    points.find(_._1 == value) match {
+      case Some((_, color)) => color
+      case None => {
+        val (smaller, greater) = points.toList.sortBy(_._1).partition(_._1 < value)
+        linearInterpolation(smaller.reverse.headOption, greater.headOption, value)
+      }
+    }
+  }
+
+  /**
+    * Calculates the color based on linear interpolation of the value between ColorPoint A and ColorPointB
+    *
+    * @param pointA tuple of value & color
+    * @param pointB tuple of value & color
+    * @param value  for interpolation
+    * @return Color
+    */
+  def linearInterpolation(pointA: Option[(Double, Color)], pointB: Option[(Double, Color)], value: Double): Color = (pointA, pointB) match {
+    case (Some((pAValue, pAColor)), Some((pBValue, pBColor))) => {
+      val li = linearInterpolationValue(pAValue, pBValue, value) _
+      Color(
+        li(pAColor.red, pBColor.red),
+        li(pAColor.green, pBColor.green),
+        li(pAColor.blue, pBColor.blue)
+      )
+    }
+    case (Some(pA), None) => pA._2
+    case (None, Some(pB)) => pB._2
+    case _ => Color(0, 0, 0)
+  }
+
+  /**
+    * (Partial) function that calculates a transformed value based on source range & source value (actual values) to target range (color value)
+    *
+    * @param pointValueMin value at point A
+    * @param pointValueMax value at point B
+    * @param value         between A & B
+    * @param colorValueMin target range lowerbound
+    * @param colorValueMax target range upperbound
+    * @return inperpolated value
+    */
+  def linearInterpolationValue(pointValueMin: Double, pointValueMax: Double, value: Double)(colorValueMin: Int, colorValueMax: Int): Int = {
+    val factor = (value - pointValueMin) / (pointValueMax - pointValueMin)
+
+    round(colorValueMin + (colorValueMax - colorValueMin) * factor).toInt
+  }
+
+  /**
     * (Partial) function that returns a Location based on a position in an image  (starting from top left (90.0, -180.0 | 0, 0) moving right -> down), taking in account the image dimensions
     *
     * @param imageWidth  pixels
@@ -144,6 +150,20 @@ object Visualization {
     val y: Int = pos / imageWidth
 
     Location(90 - (y * heightFactor), (x * widthFactor) - 180)
+  }
+
+  def distance(locA: Location, locB: Location): Double = {
+    val Location(latA, lonA) = locA
+    val Location(latB, lonB) = locB
+    val latDistance = toRadians(latB - latA)
+    val lonDistance = toRadians(lonB - lonA)
+
+    val a = pow(sin(latDistance / 2), 2) +
+      cos(toRadians(latA)) * cos(toRadians(latB)) *
+        pow(sin(lonDistance / 2), 2)
+
+    val c = 2 * atan2(sqrt(a), sqrt(1 - a))
+    c * 6371
   }
 
 }
