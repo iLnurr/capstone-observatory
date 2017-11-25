@@ -62,7 +62,41 @@ object Visualization {
     * @return The color that corresponds to `value`, according to the color scale defined by `points`
     */
   def interpolateColor(points: Iterable[(Temperature, Color)], value: Temperature): Color = {
-    ???
+    // y - new Color
+    // x - value
+    // y0 - color before (bottom)
+    // x0 - temp before
+    // y1 - color after
+    // x1 - temp after
+    // y = y0 * (1 - (x - x0) / (x1 - x0)) + y1 * ((x - x0) / (x1 - x0))
+    // https://en.wikipedia.org/wiki/Linear_interpolation
+
+    def interpolate(y0: Color, x0: Temperature, y1: Color, x1: Temperature, x: Temperature) = {
+      val xPart = (x - x0) / (x1 - x0)
+      def eval(col0: Int, col1: Int): Int = col0 match {
+        case _ if col0 == col1 =>
+          col0
+        case _ =>
+          ((col0 * (1 - xPart)) + (col1 * xPart)).toInt
+      }
+      Color(eval(y0.red, y1.red), eval(y0.green, y1.green), eval(y0.blue, y1.blue))
+    }
+
+    val sorted = points.toList.sortBy(_._1)
+
+    @scala.annotation.tailrec
+    def find(list: List[(Temperature, Color)], before: (Temperature, Color)): ((Temperature, Color), (Temperature, Color)) = list match {
+      case after :: Nil =>
+        if (before._1 <= value && value <= after._1) before -> after
+        else throw new IllegalArgumentException("not founded")
+      case after :: xs =>
+        if (before._1 <= value && value <= after._1) before -> after
+        else find(xs, after)
+    }
+
+    val ((x0, y0),(x1, y1)) = find(sorted, points.head)
+
+    interpolate(y0, x0, y1, x1, value)
   }
 
   /**
