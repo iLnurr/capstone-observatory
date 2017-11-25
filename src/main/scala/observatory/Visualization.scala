@@ -94,7 +94,7 @@ object Visualization {
         else find(xs, after)
     }
 
-    val ((x0, y0),(x1, y1)) = find(sorted, points.head)
+    val ((x0, y0),(x1, y1)) = find(sorted, sorted.head)
 
     interpolate(y0, x0, y1, x1, value)
   }
