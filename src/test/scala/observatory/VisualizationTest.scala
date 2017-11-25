@@ -28,8 +28,6 @@ trait VisualizationTest extends FunSuite with Checkers with TimeCheck {
     assert(location != location2, "location should not be equal to other")
 
     println(location)
-    println(getAntipode(location))
-    assert(getAntipode(location) == locationAntiPod, "func getAntipod should work correctly")
 
     assert(distance(location, location) == 0.0)
     assert(distance(location, locationAntiPod).toInt == 20015)
