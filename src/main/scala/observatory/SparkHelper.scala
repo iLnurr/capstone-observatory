@@ -15,11 +15,11 @@ object SparkHelper {
   import org.apache.spark.sql.functions._
 
 
-  val spark: SparkSession =
+  implicit val spark: SparkSession =
     SparkSession
       .builder()
-      .appName("Time Usage")
-      .config("spark.master", "local")
+      .master("local[6]")
+      .appName(this.getClass.getSimpleName)
       .getOrCreate()
 
   // For implicit conversions like converting RDDs to DataFrames
@@ -85,7 +85,7 @@ object SparkHelper {
       .as[TempContainer]
   }
 
-  case class StationDate(year: Int, month: Int, day: Int){
+  case class StationDateContainer(year: Int, month: Int, day: Int){
     def toLocalDate = LocalDate.of(year, month, day)
   }
 

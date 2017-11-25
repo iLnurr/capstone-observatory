@@ -24,7 +24,7 @@ object Extraction {
 
     val j = stations.join(temps, usingColumn = "id").as[StationsAndTempJoined].map { t =>
       (
-        StationDate(year, t.month, t.day),
+        StationDateContainer(year, t.month, t.day),
         Location(t.lat, t.lon),
         t.temperature
       )
