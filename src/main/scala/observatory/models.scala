@@ -1,7 +1,10 @@
 package observatory
 
+import java.time.LocalDate
+
 /**
   * Introduced in Week 1. Represents a location on the globe.
+ *
   * @param lat Degrees of latitude, -90 ≤ lat ≤ 90
   * @param lon Degrees of longitude, -180 ≤ lon ≤ 180
   */
@@ -39,4 +42,17 @@ case class CellPoint(x: Double, y: Double)
   * @param blue Level of blue, 0 ≤ blue ≤ 255
   */
 case class Color(red: Int, green: Int, blue: Int)
+
+case class Joined(id: String, latitude:Double, longitude: Double, day: Int, month: Int, year: Int, temperature: Double)
+
+case class StationDate(day: Int, month: Int, year: Int){
+  def toLocalDate = LocalDate.of(year, month, day)
+}
+
+case class JoinedFormat(date: StationDate, location: Location, temperature: Double)
+
+
+case class Station(id: String, latitude: Double, longitude: Double)
+
+case class TemperatureRecord(id: String, day: Int, month: Int, year: Int, temperature: Double)
 
