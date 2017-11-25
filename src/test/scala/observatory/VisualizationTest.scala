@@ -1,7 +1,7 @@
 package observatory
 
 
-import com.sksamuel.scrimage.Image
+import com.sksamuel.scrimage.{Image, RGBColor}
 import observatory.Extraction._
 import org.scalatest.FunSuite
 import org.scalatest.prop.Checkers
@@ -85,6 +85,12 @@ trait VisualizationTest extends FunSuite with Checkers with TimeCheck {
 
     println(interpolateColor(points, -6))
 
+  }
+
+  test("visualization") {
+    val color = Color(255, 255, 255)
+
+    assert(color.toPixel() == RGBColor(color.red, color.green, color.blue, 255).toPixel)
   }
 
 }

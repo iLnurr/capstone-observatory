@@ -42,6 +42,6 @@ case class CellPoint(x: Double, y: Double)
   * @param blue Level of blue, 0 ≤ blue ≤ 255
   */
 case class Color(red: Int, green: Int, blue: Int) {
-  def toPixel() = Pixel(red, green, blue, 1)
+  def toPixel() = Pixel(red, green, blue, 255)
 }
 
