@@ -89,4 +89,7 @@ object SparkHelper {
     def toLocalDate = LocalDate.of(year, month, day)
   }
 
+  // StationsAndTempJoined
+  case class StationsAndTempJoined(id: String, lat: Double, lon: Double, day: Int, month: Int, temperature: Double)
+
 }

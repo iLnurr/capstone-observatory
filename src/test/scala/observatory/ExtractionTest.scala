@@ -5,7 +5,7 @@ import org.junit.runner.RunWith
 import org.scalatest.FunSuite
 import org.scalatest.junit.JUnitRunner
 
-trait ExtractionTest extends FunSuite {
+trait ExtractionTest extends FunSuite with TimeCheck{
   import SparkHelper._
   import Extraction._
 
@@ -69,7 +69,7 @@ trait ExtractionTest extends FunSuite {
     val temperaturesFile = tempPath
     val year = 1975
 
-    val result = locateTemperatures(year, stationsFile, temperaturesFile)
+    val result = withTimeChecking(locateTemperatures(year, stationsFile, temperaturesFile))
 
     val size = result.size
     println(size)
@@ -80,7 +80,7 @@ trait ExtractionTest extends FunSuite {
   test("locationYearlyAverageRecords") {
     val records = locateTemperatures(1975, stationsPath, tempPath)
 
-    val result = locationYearlyAverageRecords(records)
+    val result = withTimeChecking(locationYearlyAverageRecords(records))
 
     println(result.head)
     println(result.last)
