@@ -34,7 +34,7 @@ object SparkHelper {
   }
 
   //STATION
-  object Station {
+  object StationContainer {
     def schema = StructType(
       Seq(
         StructField("id",StringType,nullable = false),
@@ -43,11 +43,11 @@ object SparkHelper {
       )
     )
   }
-  case class Station(id: String, lat: Double, lon: Double)
+  case class StationContainer(id: String, lat: Double, lon: Double)
   def stationsDF(stationsFile: String): DataFrame = {
-    spark.read.schema(Station.schema).csv(fsPath(stationsFile))
+    spark.read.schema(StationContainer.schema).csv(fsPath(stationsFile))
   }
-  def stationsDS(stationsFile: String): Dataset[Station] = {
+  def stationsDS(stationsFile: String): Dataset[StationContainer] = {
     spark.read.csv(fsPath(stationsFile))
       .select(
         concat_ws("~", coalesce('_c0, lit("")), '_c1).alias("id"),
@@ -55,7 +55,7 @@ object SparkHelper {
         '_c3.alias("lon").cast(DoubleType)
       )
       .where('_c2.isNotNull && '_c3.isNotNull && '_c2 =!= 0.0 && '_c3 =!= 0.0)
-      .as[Station]
+      .as[StationContainer]
   }
 
   //TEMPERATURE
