@@ -2,6 +2,7 @@ package observatory
 
 
 import observatory.Extraction._
+import observatory.checkers.visCheck
 import org.scalatest.FunSuite
 import org.scalatest.prop.Checkers
 
@@ -57,6 +58,9 @@ trait VisualizationTest extends FunSuite with Checkers with TimeCheck {
 
     val predicted = withTimeChecking(predictTemperature(temperatures, location))
     println(predicted)
+
+    val tlSolution = withTimeChecking(visCheck.predictTemperature(temperatures, location))
+    println(tlSolution)
   }
 
 }

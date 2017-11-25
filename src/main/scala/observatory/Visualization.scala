@@ -20,7 +20,9 @@ object Visualization {
     def weight(other: Location): Temperature = {
       1 / pow(distance(location, other), p)
     }
+
     var weights = 0.0
+
     val u = temperatures.map { t =>
       val other = t._1
       val temp = t._2
@@ -32,6 +34,7 @@ object Visualization {
         w * temp
       }
     }.sum
+
     u / weights
   }
 
