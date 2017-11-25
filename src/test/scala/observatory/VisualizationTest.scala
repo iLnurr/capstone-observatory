@@ -101,6 +101,8 @@ trait VisualizationTest extends FunSuite with Checkers with TimeCheck {
 
     println(visCheck.interpolateColor(points, 6))
 
+    println(visCheck.interpolateColor(points, -6))
+
   }
 
 }
