@@ -2,6 +2,8 @@ package observatory
 
 import com.sksamuel.scrimage.{Image, Pixel}
 
+import scala.math._
+
 /**
   * 2nd milestone: basic visualization
   */
@@ -14,6 +16,26 @@ object Visualization {
     */
   def predictTemperature(temperatures: Iterable[(Location, Temperature)], location: Location): Temperature = {
     ???
+  }
+
+
+  // fi == lat and
+  // theta = lon and
+  // central angle = cAngle
+  def distance(loc1: Location, loc2: Location) = {
+    val earthRadius = 6371 // km
+    val cAngle = if (loc1 == loc2) {
+      0
+    } else if (getAntipode(loc1) == loc2) {
+      Pi
+    } else {
+      acos((sin(toRadians(loc1.lat)) * sin(toRadians(loc2.lat))) + (cos(toRadians(loc1.lat)) * cos(toRadians(loc2.lat)) * cos(toRadians(loc1.lon - loc2.lon))))
+    }
+    cAngle * earthRadius
+  }
+
+  def getAntipode(location: Location): Location = {
+    location.copy(lat = -location.lat, lon = - (180 - abs(location.lon)))
   }
 
   /**
