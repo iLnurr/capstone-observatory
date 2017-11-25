@@ -86,6 +86,8 @@ trait VisualizationTest extends FunSuite with Checkers with TimeCheck {
 
     println(interpolateColor(points, 6))
 
+    println(interpolateColor(points, -6))
+
   }
 
   test("interpolate - tl") {
