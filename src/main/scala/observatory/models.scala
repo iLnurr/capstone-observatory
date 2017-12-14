@@ -1,6 +1,7 @@
 package observatory
 
-import com.sksamuel.scrimage.Pixel
+import com.sksamuel.scrimage.{Pixel, RGBColor}
+
 import math._
 
 /**
@@ -21,7 +22,11 @@ case class Location(lat: Double, lon: Double) {
   * @param y Y coordinate of the tile
   * @param zoom Zoom level, 0 ≤ zoom ≤ 19
   */
-case class Tile(x: Int, y: Int, zoom: Int)
+case class Tile(x: Double, y: Double, zoom: Int) {
+  lazy val location: Location = Location(
+    lat = toDegrees(atan(sinh(Pi * (1.0 - 2.0 * y / (1 << zoom))))),
+    lon = x / (1 << zoom) * 360.0 - 180.0)
+}
 
 /**
   * Introduced in Week 4. Represents a point on a grid composed of
@@ -46,6 +51,7 @@ case class CellPoint(x: Double, y: Double)
   */
 case class Color(red: Int, green: Int, blue: Int) {
   def toPixel() = Pixel(red, green, blue, 255)
+  def pixel(alpha: Int = 255) = RGBColor(red, green, blue, alpha).toPixel
 }
 
 case class Point(ϕ: Double, λ: Double) {
